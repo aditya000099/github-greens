@@ -5,6 +5,16 @@ const fs = require('fs');
 const git = simpleGit();
 const commitMessages = JSON.parse(fs.readFileSync('commits.json', 'utf8')).messages;
 
+// Function to generate a random number of commits for the specific day
+const getRandomCommitsCount = () => {
+  const prob = Math.random();
+  if (prob < 0.7) {
+    return Math.floor(Math.random() * 10) + 1; // 70% probability to have between 1 and 10 commits
+  } else {
+    return Math.floor(Math.random() * 41); // 30% probability to have between 0 and 40 commits
+  }
+};
+
 const makeCommit = async (date) => {
   const formattedDate = moment(date).format('YYYY-MM-DDTHH:mm:ss');
   const commitMessage = commitMessages[Math.floor(Math.random() * commitMessages.length)];
@@ -16,21 +26,19 @@ const makeCommit = async (date) => {
   await git.commit(commitMessage, 'temp.txt', { '--date': formattedDate });
 };
 
-const createCommitsForYear = async (year) => {
-  let currentDate = moment(`${year}-01-01`);
-  const endDate = moment(`${year}-12-31`);
+const createCommitsForDate = async (date) => {
+  const commitCount = getRandomCommitsCount();
 
-  while (currentDate.isBefore(endDate) || currentDate.isSame(endDate)) {
-    const date = currentDate.toDate();
+  for (let i = 0; i < commitCount; i++) {
     await makeCommit(date);
-    console.log(`Committed for date: ${currentDate.format('YYYY-MM-DD')}`);
-    currentDate = currentDate.add(1, 'days'); // Move to the next day
   }
+
+  console.log(`Committed ${commitCount} times for date: ${moment(date).format('YYYY-MM-DD')}`);
 };
 
-// Set the year you want to target
-const targetYear = 2022;
+// Set the specific date you want to target
+const targetDate = '2024-12-31';
 
-createCommitsForYear(targetYear)
+createCommitsForDate(targetDate)
   .then(() => console.log('Done making commits'))
   .catch((err) => console.error('Error making commits', err));
